@@ -20,7 +20,7 @@ sınıfın içerisinde net bir şekilde bulunmasın.
 gibi işleri/kontrolleri nesnenin kendisinden alarak kontrolü başka bir yapıya devredilmesi işlemidir.
 
 Coupling-Cohesion
-Tighly coupling loosely cohesion
+Tightly coupling losely cohesion
 Eğer ki bir sınıf başka bir sınıfın nesnesine ihtiyaç duyuyorsa kendi içinde. Bu durumda bu 2 nesnenin nasıl oluşturulacağına bağlı
 olarak bu iki sınıfın birbirine sıkı sıkıya ya da daha gevşek bağlı olduğuna dair kanıya variyoruz.
 Diyelim ki elimde main activity sınıfı var ve analitik kütüphanesinin nesnesini oluşturmam gerekiyor eğer bu nesne oluştuma işlemini
@@ -40,3 +40,19 @@ Cohesion
 Bir class'ın başka bir class'a sıkı sıkıya bağlı olması cohesion'un düşmesine neden oluyor. Cohesion: bir sınıfın ya da bir modülün
 be kadar iyi tanımlanmış kendi işlevine ne kadar iyi odaklandığını ifade eder.
 Yüksek cohesion: bir sınıfın tek bir sorumluluğu olması ve tek o sorumluluğu yerine getirmesini ifade ediyor.
+Mesela main activity'de onCreate'in cohesion'unun yüksek mi düşük mü olduğuna nasıl kara vericem? Şöyle düşünmemiz gerekiyor: bir activity'in
+onCreate'inin sorumluluğu ne o ekranı çizdirmek ama biz gelip bazı classların nesnelerini de burda oluşturup işlem yapıyorsak artı olarak
+yüklediğimiz görevle birlikte cohesion düşmüş olur. Çünkü fonksiyon temel sorumluluğunun dışında iş yapmış oluyor.
+
+** İş görüşmesinde sorulur: neden di olarak dagger'ı hilt'i koin'i bir tool'u kullanırız? Kullanmasaydık nolurdu? Herhangi bir di tool'u
+kullanmadan manuel olarak di nasıl yaparız?
+Di'ı manuel olarak da yapabiliyorduk, manuel olarak yapmanın bu class2lara library'lere deavantajları var. O dezavantajlarla uğraşmamak için
+bunu harici kütüphanelere devrediyoruz.
+
+--emrenin podcastleri
+
+Modern bir android projesinde di'ı en temelde nerelerde kullanıyoruz?
+activity ve fragment'larımız olcak,bunlarla beraber çalışan viewmodellerimiz olacak
+bu viewmodeller repository'lerle konuşucak, bu repositoler ya local db ya da uzak sunucuya gidicek
+
+SON 1SA BAKILIR
