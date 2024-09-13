@@ -1,0 +1,42 @@
+Dependency Inversion Prensibi
+Injection yöntemin ismi, presip değildir.
+* SOLID'in presipleri
+
+Bu prensipin esprisi mevcut proje kodlarımızı yazarken; üst seviyedeki moduller ya da class'lar alt seviyedeki modul veya class'lara
+bağımlı olmasın. Eğer iki tane modulümüz varsa bunlar birbirlerine bağımlı olmak yerine bir soyut arayüz üzerinden bağımlı olsunlar
+bunu söylüyor.
+
+S.O.L.I.D'in D'sini konuşurken yani dependency inversion'u; daha üst seviyedeki modüller, üst seviyedeki class'lar daha alt seviyedeki
+class'lara ya da modullere direk olarak bağımlı olmasınlar. Bunlar birbirleri içerisinde kullanılacaklardır ama bu kullanımı yapmak
+soyut bir arayüz üzerinden gerçekleştirilsin ama direk bağlı olmasınlar, bu prensip'İn ismi dependency inversion.
+Mesela bizim activity class'ımızda içinde bir şeyler kullanıcam başka class'lara ihtiyaç duyucam bu prensip bana diyor ki:
+eğer senin tepedeki daha üstteki yapın activity ise içindeki diğer kullanacağın class'lar activity'den daha low level class'larsa
+ki kullanacağımız neredeyse hepsi öyle class'lar. Bu durumda bu activity o class'lardan mümkün olduğunca bağımsız hareket edebilsin.
+O class'ların impelantaston detayları, nasıl oluşturuldukları bu class'ın içerisinden bir yerde yer almasın. Temel prensip temel dert
+bu. İlla bir bapımlılık gerekecekse ki gerekecek bu gereksinimi mümkünse soyut bir arayüz üzerinden yapalım. Yine ilgili gereksinim
+sınıfın içerisinde net bir şekilde bulunmasın.
+
+* Inversion of control : Yazılım geliştirme süreçlerinde bir nesnenin nasıl oluşturulacağını veya nasıl bir işlem gerçekleştireceği
+gibi işleri/kontrolleri nesnenin kendisinden alarak kontrolü başka bir yapıya devredilmesi işlemidir.
+
+Coupling-Cohesion
+Tighly coupling loosely cohesion
+Eğer ki bir sınıf başka bir sınıfın nesnesine ihtiyaç duyuyorsa kendi içinde. Bu durumda bu 2 nesnenin nasıl oluşturulacağına bağlı
+olarak bu iki sınıfın birbirine sıkı sıkıya ya da daha gevşek bağlı olduğuna dair kanıya variyoruz.
+Diyelim ki elimde main activity sınıfı var ve analitik kütüphanesinin nesnesini oluşturmam gerekiyor eğer bu nesne oluştuma işlemini
+ben direk class'ın içerisinde yapıyorsam bu durumda bu 2 class birbirine sıkı sıkıya bağlı demek oluyor. Bazen bu istenilen bir şey
+de olabilir ama genel yazacağımız kodlarda bu bir problemdir. Mümkün olduğunda her bir sınıf diğer başka bir sınıfa olabildiğince
+gevşek bir şekilde bağlı olsun çünkü kullanıcağımız yapılar değişecek.
+Mesela dataroid bir analitik kütüphanesi firebase'in,netmera'nın çeşitli çeşitli bu iş için kullanılabilecek sektörde envai çeşit
+analitik kütüphanesi var. Bir gün gelecek product owner'ınız netmera ile anlaştık diyecek. Jr şöyle düşünür: ben gideyim netmera'nın
+dökümantasyonuna bakayım implemantasyonu yapayım sonra da gelip kullanayım. Biraz daha işi bilen Sr şöyle düşünür: benim bir analitik
+yapısına ihtiyacım var o zaman ben bu analitik yapısını soyut bir şekilde oluşturayım ana uygulamanın kendisinden bağımsız olarak.
+Bunun içerisine bugün için netmera koyayım implementasyon için gerekli fonksiyonların arayüzünü çıkarayım ve uygulamamda bu arayüzleri
+koyayım kullanayım. Sonrasında farklı bir analitik kütüphaneye geçildiğinde sizin bu sefer yapmanız gereken sadece şey o analitik
+arayüzünde netmera'yı kaldırıp yenisini koymak ve yenisinin fonksiyonlarını kendi arayüzünüzde olacak şekilde yedirmek. Dolayısıyla
+activity'lerde kullandığımız yerlerde değişiklik yapmayız sadece arayüzde değişiklik yaparız.
+
+Cohesion
+Bir class'ın başka bir class'a sıkı sıkıya bağlı olması cohesion'un düşmesine neden oluyor. Cohesion: bir sınıfın ya da bir modülün
+be kadar iyi tanımlanmış kendi işlevine ne kadar iyi odaklandığını ifade eder.
+Yüksek cohesion: bir sınıfın tek bir sorumluluğu olması ve tek o sorumluluğu yerine getirmesini ifade ediyor.
