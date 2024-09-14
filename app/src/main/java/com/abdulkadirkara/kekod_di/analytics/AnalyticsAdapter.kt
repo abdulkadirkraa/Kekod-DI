@@ -1,3 +1,5 @@
 package com.abdulkadirkara.kekod_di.analytics
 
-class AnalyticsAdapter(val service: AnalyticsService)
+import javax.inject.Inject
+
+class AnalyticsAdapter @Inject constructor(val service: AnalyticsService)

@@ -56,3 +56,223 @@ activity ve fragment'larımız olcak,bunlarla beraber çalışan viewmodellerimi
 bu viewmodeller repository'lerle konuşucak, bu repositoler ya local db ya da uzak sunucuya gidicek
 
 SON 1SA BAKILIR
+
+-------------------------------------------------
+
+Ders11
+
+Bazı sınıflar constructor inject edilemeyen sınıflardır. Mesela interface'ler, abstract class'lar ya da bazı sınıflarımız var sistem tarafınfan
+yönetilen. Örnek olarak app ayağa kalkarken ekranda ilk gözüken activity'İmizin nesnesini oluşturmuyoruz, jetpack navigation kullanıyorsak
+diğer activity veya fragment'ların da nesnesini oluşturmuyoruz sistem ya da ilgili kütüphaneler tarafından bizlere veriliyor. Bu gibi sistem
+tarafındddan yönetilen sınıflar da yine constructor'ı inject edilemeyen sınıflardır. Veya kullanmak istediğimiz sınıf veya arayüz 3th parti bir
+kütüphanenin sınıf veya arayüzüdür, zaten onu biz editleyebilecek durumda da değilizdir. Bu gibi durumlara constructor injection'a kapalı
+sınıflar ya da interface'ler diyeceğiz. Dolayısıyla mesela activity class'ımız constructor injection'a kapalı olduğu için bizim activity'de
+kullanacağımız dependency'İmiz viewmodel'dı. Vİewmodel'i constructor inject şeklinde yapamıyorsak geriye ne kalmış oluyor o zaman field injection
+yapmamız lazım.
+Ama bu kullanımlarda gereksiz boilerplate kod tekrarlarına düşmemize sebep oluyor. Bu sefer de bunun yerine çözüm olarak;
+AppContainer isimli bir class oluşturalım. Bu sınıfın içine de hem activity'deki kullandığımız yönetmeye çalıştığımız hem de başka sınıflar
+tarafından da kullanılabilecek olan tüm dependency'leri/bağımlılıkları ilgili AppContainer'ın içerisine koyayım. Bu bize ne sağlayacak?
+Normal mesela uzak sunucu için gerekli olan retrofit nesnesini ana ekranımda oluşturup kullandığım gibi başka bir ekranda da gerekecek ve
+yine oluşturum kullanma durumuna düşücem. AppContainer içerisinde dependency'ler bulundurarak başka bir sınıfa geçtiğinizde de yine aynı
+retrofit nesnesini kullanabilirsiniz. Zaten AppConntainer'de oluşturmuştunuz. Dolayısıyla objelerin tekrardan kullanımını da doğru bir şekilde
+yönetmiş oluyoruz, önceki kullanımda mesela activity class'ı içinde retrofit nesnesi oluşturmadan kullanmamız her ekranda bu nesneyi oluşturmadan
+kullanma hatasını alabiliriz ama AppContainer içine koyunca sıralama en falza bi kere yanlış olur geri düzeltilmesi de çabuk olur, ayrıca
+activity class'larımızdaki boilerplate kod'lardan da kurtulmuş oluruz.
+Peki AppContainer ile nasıl kullanıyoruz projelerimizde?
+Bu AppContainer sınıfını her mobil uygulamanın application sınıfı var. Manifest'te Launcher olarak tanımlanan activity ne ise app'in ikona
+tıklayınca ilk ayağa kalkan activity o. Aslında bu activity sınıfından hemen önce bizim bir Application sınıfımız oluyor. Bu illa yazmak
+zorunda olduğunuuz bir sınıf değil. İsterseniz Application sınıfından miras alan kendi application sınıfınızı yazabilirsiniz. Bunu yazdığınızda
+bu tüm activity'lerden launcher activity'de dahil çnce çalışan bir sınıfınız oluyor. Aynı zamanda Application sınıfının kendisi de bir context.
+Ve tüm activity'ler fragment'lar tarafından da bu Application sınıfına erişebiliyorsunuz. Dolayısıyla AppConatiner ile dependecy yönetimi yapmak
+istiyorsak,diğer tüm sınıflarımızın kullanacağı dependency'lerimizi tek bir sınıf üzerinde toplamak istiyorsak, bu sınıfa diğer her sınıftan
+erişim verebiliyor olmanız lazım. Yani activity'lerimin tamamı bu AppContainer sınıfının nesnesine hızlı ve kolay bir şekilde erişebilmesi
+lazım ya da fragment'ların ya da view class'ların. Dolayısıyla bu AppContainer sınıfı benim kendi oluşturduğum Application sınıfımın bir nesnesi
+şeklinde tutulursa dolayısıyla application sınıfına activity'den,fragment'ten,başka custom view sınıfından erişebilicem. Dolayısıyla her yerden
+AppContainer nesnesine erişebilirim. Erişimden sonra da AppContainer'ın içerisinde olan dependency'leri ilgili olarak gerektiği yerde çağırıp
+kullanabilirim.
+Yani bu yöntemle de sonucumuz; bütün bağımlılıkları tek bir sınıfta yönet, yönettiğin bu sınıfı diğer tüm sınıflara görünür kıl.
+*Kendi application class'ımızın içinde appcontainer nesnesi oluşturarak yaptığımız şey yapısal olarak singleton değil. AppContainer'ı object
+olarak değil düz bir class olarak yazıyoruz. Ama bu sıradan class'ın instance'ı application sınıfının içerisinde olduğu için tüm uygulama
+tarafından tüketilebilir oluyor. Bunun mümkün olduğunca az yapmanız lazım çünkü singleton pattern aynı zamanda anti pattern olarak da
+isimlendirilirdi bunun sebebi de memory'de garbage collector tarafından silinemeyen alanlar inşa etmiş oluyorduk. Dolayısıyla bundan çok fazla
+yapmamız da memory'i aşırı şekilde dolduruyordu ve bize günün sonunda autofmemory bir hatayla karşılık verecektir. Biz burda di yönetirken
+singleton pattern kullanmıyoruz ama yapısı gereği Application sınıfı uygulamanın lifecycle'ı boyunca ayakta kaldığını düşündüğümüz bir class
+dolayısıyla içinde kullandığımız değişken de singleton olmasa bile memory'de application sınıfı ayakta kaldığı sürece bulunacak. Dolayısıyla
+nerdeyse singleton kadar bize sıkıntılı bir ortam sunmuş oluyor. Ama burda singleton'la şöyle bir fark var; singleton garbage collector tarafından
+temizlenemiyor ama Application sınıfı uygulamanın lifecycle'ı boyunca ayakta durduğu memory'de yer kapladığı süre boyunca kesin olarak ayakta
+kalacağının bir garantisi yok, garbage collector çok zorda kaldığı durumlarda application sınıfı da temizleyebiliyor. O yüzde application
+sınıfları hiç silinemeyen bir yapıda değil.
+
+Bu AppCOntainer ile olan yapıdaki sorunumuz da; biz mesela login activity'deyiz o activityy ekranı geçmek için gerekli repository'e ihtiyacımız
+var, onu da AppContainer sınıfı içinde değiişken olarak tutulan nesnesini çağırarak alıyoruz. Ama login activity'i geçtikten sonra benim ilgili
+o repository'e bir daha ihtiyacım yok gittimiz fragment veya activity'in kendi repository'leri gerekli, onlar da zaten AppContainer sınıfının
+içerisinde bulunacaklar zaten. Dolayısıyla üzerine düşününce AppContainer de bize şöyle problemler getiriyor:
+1- AppContainer sınıfı çok büyüyecek demek oluyor bu. Çünkü bütün bağımlılıklarımı burdan yönetiyorum. Daha sonrasında bakımı zorlaşacak.
+2- AppContainer'In uygulama lifecycle'ı boyunca yer kaplaması da mesela şöyle problem getirecek. Mesela AppContainer sınıfımın içerisinde
+    300-400tane dependency varsa uygulama daha ayağa kalkarken kullanıcı o keranlara girecek ya da girmeyecek bilmiyoruz bile ama dependency'lerini
+    oluşturduk bile. Bu yüzden de uygulama ayağa kalkar kalkmaz kocaman bir memory alanını işgal ettim. Ve bu memory alanı biz ekstra bir yönetimde
+    bulunmazsak uygulama lifecycle'ı boyunca da değişmiyor. Bu çok kötü bir memory yönetimine neden oluyor.
+
+Bu yüzden de bizim bu AppCOntainer sınıfını da memory kullanımına göre optimize etmemiz lazım.
+AppCOntainer içerisinde yer kaplayan dependency'lerin lifecycle'ı ne olucak. Buraya şöyle bir şey dememiz lazım: bu AppContainer sınfının bir kısmı
+loginActivity'de çalışacak bir kısmı sadece dashboard'de çalışacak bir kısmı sadece profile'de çalışacak gibi benim bu AppContainer sınıfını
+parçalayabiliyor olmam lazım. Dolayısıyla AppContainer sınıfınızı farklı usecase'lerinize göre bölmeniz lazım. Mesela LoginConatiner sınfı oluşturursunuz
+AppContainer'ın bir parçası olarak bu sınıf sadece login'le ilgili viewmodel'i repository'leri o ekran için gerekli dependency'leri içeriyor olur. Bundan
+sonra LoginContainer,DashboardContainer,ProfileContainer gibi sadece ilgili fonksiyonlara göre child container'ler oluşturuyorsunuz. Ve bu child
+container'ların direk olarak nesnesini oluşturmuyorsunuz AppContainer sınıfı içinde, bunları nullable şekilde tutuyoruz. Neden nullable tutuyoruz?
+Çünkü ilgili container'lar direk olarak nesnesi oluşturulursa en başta yaşadığımız probleme dönüyoruz. Bu nullable child container'ları ne zaman
+kullanılacaklarsa o zaman doldurmam lazım. Dolayısıyla ana container'ımızı(AppContainer) parçaladık küçük container'lara böldük. Ve bu küçük container
+ları da hangi usecase'lerde hangi ekranlarda kullanacaksınız o ekranlarda nesnelerini oluşturuyorsunuz. Ve daha sonra bu ekrandan çıkarken sonuçta bu
+nesneAppContainer içerisinde tutulmaya devam edilecek ve bu application lifecycle'ı boyunca uygulamada yer kaplayacak sonrasında bu ekrandan da çıkarken
+ilgili child container'ınızı null'lamanız gerekiyor. Bu şekilde login'e girdin login'in container'ını oluştur login'den çıktın container'ı null'a eşitle,
+dashboard'a geldin container'ını oluştur dashboard'dan başka ekrana geçtin dashboard'ın container'ını boşalt.Bu şekilde bir akışla giderek dependency'lerimiz
+container'lar tarafından artık AppContainer hala başta tüm container'ların yönetimi onun içerisinde bulunuyor, parçaladığımız için yönetimi kolay, memory objesi
+olarak da hepsini tutmuyoruz ne zaman ki ilgli fonksiyonlara gidiyorsak ancak o zaman ilgili child container'ı oluşturuyoruz ilgili fonksiyondan da çıkarken
+ilgili child container'ı null'luyoruz.
+
+İsterseniz son haliyle böyle dependency injection yönetimini sağlatabilirsiniz. En son halinde memory management'ını da düzelttik, bütün dependency'leri tek bir yerde
+ama onun child'ları olacak şekilde yönetimi kolay bir şekle getirdik. Ve böyle kullanmaya devam edebiliriz.
+
+Ama android tüm bu yaptığımız işlemleri arka planda yapan kütüphaneler inşa ettik zaten diyor. Bunun bir tanesi dagger-hilt bir tanesi koin. Farklı pattern'leri
+kullanıyorlar arka planda bir tanesi dependency injection kullanırken bir tanesi service-locater-pattern kullanıyor. Biri build süresi kısmında bu yaptığın işlemleri
+generate ederken biri sen bunu runtime'da istediğin durumda generate edecek. Bunun gibi farklı özellikler içeren kütüphaneler zaten hazırlanmış durumda.
+
+Bu manuel olarak yönettiğimiz işi aoutomated olarak kütüphanelere bırakarak burda çözümler ikiye ayrılıyor: biri reflection based dediğimiz çözümler var runtime sırasında
+gerçekleşiyor bunlar dependencyleri runtime sırasında veriyor bize, bir de build time de generate edilen classlar yardımıyla bu işi çözen yöntemler var.
+İlk yötemçok fazla kullanılmıyor runtime'da reflection based çözen yöntemler falza kullanılmıyor. Çünkü reflection kullandığınızda, eğer reflection kullanarak bir class'ın
+instance'ını oluşturuyor ya da fonksiyonlarına erişiyorsanız hem performans olarak sıkıntılı hem de proguard gibi ofustike işlemlere yol açan classların,fonksiyonların
+isimlerini dönüştüren yapılar kullanıyorsanız da bu reflection'a engel oluyordu. Proguard ile yapılan iş reflection'ı etkilediğinden reflection'a ekstra rule'lar koymanız
+gerekiyordu.
+Compile time dediğimizde dagger ve hilt çözümleri var. Burda siz build işlemi sırasında run tuşuna bastığınız anda yaptığınız setup'a göre kullandığınız
+dependency'ler arka planda ilgili class'lara generate ediliyor. Ve bu generate edilen class'lar yardımıyla ilgili dependency'leri yönetiyoruz.
+Bir de bunlara alternatif olarak service-locater dediğimiz bir patern var. Bu pattern'de AppContainer yapısında olduğu gibi aslında biz o bütün dependency'leri tek bir sınıf
+yardımıyla çözüyoruz ve bu sınıf runtime da ihtiyaç duyulduğu anda bize ilgili dependency'leri veriyor. Yani buil time sırasında bir generate işlemi yapmıyor, runtime da
+sanki reflection based çözüm gibi runtime sırasında ilgili dependency'leri veren bir pattern.
+* Mid'e doğru giderken sorulabilir. Koin vs Hilt farkları nelerdir?
+En temeldeki fark bu arka planda kullandıkları pattern'ler. Eğer hilt'i dagger'ı kullanıyorsak bildiğiniz anlamda generation veya annotation based bir dependency injection
+kullanmış oluyoruz. Buildtime'da generate edilen class'lar yardımıyla yapıyor bunu. Koin dediğimiz şeyse builtime'da ekstra bir şey yapmıyor runtime'da size bu dependency'leri
+veriyor ama bu dependency'leri verirken de kullandığı pattern'de servie-locater isimli bir pattern.
+Bu iki yöntem arasındaki temel farklar bizim nasıl sonuçlara ulaşmamıza neden oluyor?
+Hali hazırda bir build problemimiz varsa yani hazırdaki projemizde build süresi çok fazlaysa bir de bu projeye hilt'i eklersek bu süre daha dramatik bir şekilde artacak.
+Dolayısıyla hazırdaki build süresi problemi olan projede belki koin'i tercih edebilirsiniz. Koin'i tercih ettiğiniz durumda da bu sefer bu dependency yönetimi build işlemi
+sırasında ekstra bir işlem yapmadığı için eğer dependency yönetiminizde bir problem varsa bunu o dependency'in runtime'da çalıştığı sırada haberdar oluyorsunuz. Bu size
+test edilebilirlik kısmında biraz zorluk çıkartıyor. Yeterli unit testleriniz, ui testleriniz yoksa yeterli sayıda iyi test uzmanı ekiplerle çalışmıyorsanız böyle bir yerde
+koin ile çalışmak görece riskli olabilir.
+
+HILT IMPLEMANTASYONU
+Step 1 -> project gradle dosyamıza geliyoruz plugin kısmına hilt-android plugin'i koyucaz.
+          id("com.google.dagger.hilt.android") version "2.44" apply false
+
+Step 2 -> hangi gradle module'lere sahipsek onlara gradle module olan app module'imize geliyoruz bunun plugin kısmına hangi module'leri
+          kullanacağımızı yazıyoruz.
+          id("kotlin-kapt")
+          id("com.google.dagger.hilt.android")
+
+Step 3 -> ilgili kütüphaneleri dependency'lerimize ekliyoruz
+          implementation("com.google.dagger:hilt-android:2.44")
+          kapt("com.google.dagger:hilt-android-compiler:2.44")
+
+Step 4 -> Sync Now
+
+Step 5 -> kapt'ın şöyle bir konfigürasyonu var gradle module'e eklenmeli. Bunun anlamı kapt ile beraber projede kodlarımızı kullanırken arka
+          planda bazı şeylerin generate edildiğini söyleyeceğiz.Generate edilirken oluşturulan class'lar da java class'lar. Dolayısıyla arkada
+          bu java class'ları generate edilirken bazen kullandığımız type'ların ne olduğunu tam olarak doğru şekilde generate edemeyebiliyor hilt
+          ya da kapt. correctErrorTypes dediğimizde yapabildiği kadar bu tipleri düzeltiyor, düzeltemediklerinin de error vermesini engelliyor.
+          Yine biz o haliyle de çalışabiliyoruz ama eğer buna true demezseniz kotlin'de daha fazla build time da hata alma ihtimaliniz olacak.
+          Aslında o generate edilen java'daki hali projede kullanabiliyoruz da build işlemi sırasındaki keskin kurallarda normalde bunu demeseniz
+          ya aslında bunun tipini tam olarak anlamıyorum diyip hilt bize uyarı vericek. O yüzden bunu diyerek ordaki hatalardan biraz daha
+          kurtulmuş olucaksınız.
+          kapt {
+            correctErrorTypes = true
+          }
+Temel entegrasyonlarımız bu kadar.
+
+Bunların versiyonlarının aynı olması gerekiyor! Eğer plugin'de 2.44 kullandıysanız dependency kısmında da aynısı olmalı.
+
+Hilt'i ve kapt'ı kullandığınız diğer yöntemleri mesela databinding gibi yöntemleri de android studio'nun 4.0 ve üstü sürümlerinde
+kullanabiliyorsunuz. Daha altındaki bir versionda kullanıyorsanız hata alacaksınız.
+
+Project plugin'ler niye varlar?
+Biz run tuşuna bastığımızda eğer build sırasında bir şeyler yapılacaksa o yapılan şeyler çoğunlukla plugin'ler tarafından yönetiliyor.
+Bilin ki plugin sizin build sürenizde muhtemelen run tuşuna bastığımızda geçecek olan o compile time'da çok yüksek ihtimalle arka planda bir
+şeyler yapacak. O yüzden bir plugin kullanmamız gerekiyor hilt için de. Çünkü arka planda generate edilen şeyleri olacak.
+
+kapt (kotlin annotaion processing tool) : Bu eğer annotation based tabanlı bir işlem yapacaksanız bir çalışma yöntemi benimsiyorsanız. İşte
+hilt için annotation based bir yapımız var, room db için annotation based bir yapımız var, retrofit için annotation based bir kullanımımız var.
+Bu gibi kütüphaneleri, bunlardan herhangi birini kullanıyorsanız ilgili kütüphanenin kapt dependency'sini de ve kapt plugin'inini de projenize
+eklemeniz gerekiyor. kapt'ın yerine geçecek olan ksp denilen bir yapımız daga var. Artık kotlin kapt ksp'ye doğru dönüştürülüyor.
+* kapt yerine ksp 2x kadar daha hızlı build.
+
+* hilt arka planda java 1.8 feature'larını kullanıor arka planda kodları generate ederken ya da yapması gereken işlemleri yaparken. O yüzden
+1.8 ve üzerini kullandığınızdan emin olun modeule gradle'da!
+
+* compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+Module gradle'daki bu yapılar nedir ne işe yararlar?
+sourceCompatibility = hangi java sürümüyle projenizin derlendiğini, yazıldığını söylüyoruz. Kendi kaynak kodlarımızın hangi java versiyonuyla
+                      yazıldığıdır.
+targetCompatibility = derleyicinin üreteceği bytecode'ların hangi jvm sürümünde çalışacağını söylüyoruz. Hangi jvm sürümünde çalıştıracağımızdır.
+
+* Module gradle'da targetSdk ve compileSdk nedirler?
+
+hilt'i 2.44'de bırakırsaniz android gradle plugin (agp) ile çakışıyor bu sefer de. agp 8.0.0 üzerini kullanıyorsanız hilt versiyonu 2.44'ün
+üzerine çekmeniz lazım.
+
+Hilt arka planda bir şeyleri generate edecek.Kullandığımız bu dependency'leri de bu generate ettiğimiz class'lar yardımıyla alıcaz. O halde bu
+generation işleminin bir başlangıç noktası olması lazım. Biz run tuşuna bastığımızda bir kod tetiklenecek ondan sonra da projedeki diğer bütün
+dependency'lerimin derlenebiliyor olması lazım. Bu yüzden de hilt bize projelerimizde bir application sınıfı açmamızı istiyor manul dependency
+injection son kısımlarında AppContainer'de olduğu gibi. Bu sınıfın da Application sınıfından miras alması lazım. Bunu oluşturduktan sonra da
+manifeste şu bilgiyi vermemiz gerekiyor: benim bir tane application sınıfım var ve bu application sınıfını uygulama ayağa kalkarken kullanmak
+istiyorum. Manisfest'te application tag'i altına android:name="com.abdulkadirkara.kekod_di.MyApp"
+Şimdi de bu MyApp class'ını bir annotation yardımıyla hilt bizim projemizde generation işlemlerine başlayabiliyor olacak. O annotation da
+@HiltAndroidApp'dir.
+Application sınıfımıza bu annotation'u koyduktan sonra Project görünümüne geçip -> app -> build -> generated -> source -> kapt ->
+hangi build variant'ta çalışıyorsanız (biz şu an debug mod'da çalışıyoruz) ona uygun olan kapt'ın kısmına geliyorsunuz burda ->
+sırayla package ismine göre (bizde com -> abdulkadirkara -> kekod_di) içerisinde -> MyApp_GeneratedInjector isimli bir sınıf görüyoruz.
+Hilt bize kullandığımız application sınıfına bağlantığını ordaki generate edilen kodla söylemiş oluyor.
+@OriginatingElement(
+    topLevelClass = MyApp.class
+)
+@GeneratedEntryPoint
+@InstallIn(SingletonComponent.class)
+public interface MyApp_GeneratedInjector {
+  void injectMyApp(MyApp myApp);
+}
+
+Şu an bilinmesi gereken kısım: Benim hilt'i kullanabilmem için kod genertion işlemlerinin başlayabilmesi için App sınıfıma mutlaka
+@HiltAndroidApp annotasyonunu vermem lazım. Bunu verdikten sonra projemde hilt aktif edilmiş olacak. Hilt artık gerekli dependency'leri
+gerekli sınıflara ilgili android sınıflarına verebilir hale geliyor. Hilt'in desteklediği bu android sınıfları dediğimiz şeyler sınıflar
+en başta application sınıfı, viewmodel sınıflarımız, activity ve fragment'larımız, custom yazığımız view sınıflarını, broadcast
+receiver'ları, yazacağımız servisleri yönetebiliyor olacağız. Bu sınıflar hilt'in android sınıfları olarak geçiyorlar. Bu android
+sınıflarına denk gelen çeşitli hilt'in android component sınıfları var. O component sınıfları yardımıyla çözebiliyor olacağız.
+Dikkat edilmesi gereken bir kısım olarak: eğer activity'lerde hilt'i kullanıyor olacaksanız miras aldığınız sınıfın mutlaka
+ComponentActivity'den ya da bunun altındaki diğer child activity'lerin birinden miras alması gerekiyor, aynı şekilde fragment'larla
+çalışmaya başladığınızda androidx ile olan versiyonu kullanmıyorsak yine bunda da hata alırız hilt ile çalışırken. retainFragment'lar
+ile de hilt çalışamıyor, eğer projenizde bir fragment retainInstance'a sahipse o fragment'ınızda da hilt'in çalışmayacağını bilin.
+retain Fragment'ın esprisi: konfigürasyon değişikliği yaptığımızda bu fragment'ın instance'ının saklanmasını sağlatmış oluyoruz.
+Ekstra olarak saveInstanceState ve restoreInstanceState gibi şeylerle uğraşmıyorduk.
+
+Activity'lerle hilt'i çalıştırabilmemiz için hilt injection'larımızı yapabilmemiz için bu activity class'ımızın da başına
+@AndroidEntryPoint annotation'ununu yazıyoruz. Bu annotation'la beraber activity'imize bu component sınıfları kullanabilir, bunun
+içerisideki dependency'leri kullanabilir hale geliyorsunuz. Bunu yaptığınızda artık constructor injection ya da field injection'ları
+kullanabilirsiniz.
+Bizim constructor injection'ı kullanabilmemiz için bir yerde nesnesini oluşturma val main = MainActivity() gibi yazmamız lazım ki bunun
+constructor'ını çağırdığımızı söyleyelim. Bunu biz kendimiz yapmadığımız için zaten launcher aktivitemiz, harici ikinci bir aktivitemiz
+olsaydı jetpack navigation ile yönetiyorsak yine SecondActivity() gibi constructor'ını kullanmadığımız için bu durumlarda constructor
+injection'ı aktivitelerde yapmıyoruz. Aktivitelerde kullanabileceğimiz geriye bir tek yöntem kalıyor field injection.
+Field injection yaparken de hilt bize şöyle diyor: @inject annotation'ı kullan. Bunun için şöyle bir kurgu yapalım AnaylticsAdapter
+class'ı main activity'de inject etme üzerine.
+AnalyticsAdapter bizden bir service bekliyor. bu service bir interface olucak ve bodysiz metodu olucak. Şimdi dependency injection
+kullanmadığımız durumda service'in içindeki analyticsMethods() metodu nasıl tetikleyecektim?
+
+Hilt'le ilgili projede bir hata alıyorsan bakman gereken 2-3 yer var
+agp, kotlin versiyonu, hilt plugin versiyonu(project gradle'daki),dependency versionun
+bu dördünün birbiriyle uyumlu olduğunu garanti etmeniz gerekiyor.
+
+Mesela ide'de hilt size kotlin versiyonuyla ilgili bir hata verecek örneğin 1.0'dan büyük olsun gibi baktınız kotlin versiyonunda bir
+problem yok ilk bakmanız gereken yer hilt'in bu versiyonu kotlin'in bu versiyonuyla uyumlu mu olabilir. Uyumlu ve çalışabiliyor olarak
+gördüyseniz de ikinci olarak agp versiyonuyla uyumlu çalışıyor mu ona bakmanız gerekiyor. Eğer agp ile uyumlu değilse ya agp versiyonu
+düşürmenüz gerekiyor ya da hilt versiyonu yükseltmeniz. 2.44'te bu hata ile karşılaşırsınız hilt'te bu sürümü en az 2.48'e çekerseniz
+hatanın giderildiğini görüceksiniz.
