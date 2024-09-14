@@ -276,3 +276,26 @@ problem yok ilk bakmanız gereken yer hilt'in bu versiyonu kotlin'in bu versiyon
 gördüyseniz de ikinci olarak agp versiyonuyla uyumlu çalışıyor mu ona bakmanız gerekiyor. Eğer agp ile uyumlu değilse ya agp versiyonu
 düşürmenüz gerekiyor ya da hilt versiyonu yükseltmeniz. 2.44'te bu hata ile karşılaşırsınız hilt'te bu sürümü en az 2.48'e çekerseniz
 hatanın giderildiğini görüceksiniz.
+
+* mülakat sorusu
+constructor inject edilmeyen bir sınıfa ben nasıl hilt'e söyleyerek onu dependency olarak kullanabilirim?
+interface için kullanıyorsak binds yöntemiyle module'ler oluşturup ilgili module'lere nerde kullanıcaksak activity'se ona göre fragment ise ona göre
+InstallIn içinde hilt component'i yazıp sonrasında da bu module sınıfını tanımlayıp içerisine de abstract olarak da ilgili interface'i implemente
+ettiğim class'ı parametre olarak verip geri dönüşüne interface'i alacağım abstract functionlar yazarım. Bu sayede hilt bana ilgili interface'i
+inject edebilir. Retrofit gibi kütüphane class'ları için de provide diye bir annotation var.
+
+** eğer mülakatta zorlamak isterse şöyle sorabilir. Mesela retrofit'i kullanıyorsun onun interceptor'ları var. İşte iki tane retrofit intstance'ı
+beklediğini varsayalım. Biri loglama interceptor'una sahip olsun diğeri de sahip olmasın. bu durumda bu iki retrofit instance'ını nasıl yönetirsin?
+
+** annotation bilgisinden ziyade;
+neden biz di diye bir şey kullanıyoruz?
+bunun arkasında atan prensip ne?
+bana bir tane usecase söyle kullanmazsak ne gibi bir problem yaşarız?
+gibi sorular daha anlamlı. Sen bu soruları bilirsen gerisi implemantasyon detayı öğrenmesi kolaydır.
+
+**module'de neden abstract fonksiyonlar tanımlıyoruz?
+Çünkü fonk body'sini hilt dolduracak.
+
+field inject olan adapter'ın sınıfında constructor inject'in içine bir de LogAdapter oluşturup ınu eklersek tek hata verir hilt yine.
+Çünkü bu log nesnesini nasıl üretileceğini söylemediğimiz için. Dolayısıyla bu LogAdapter'ın sınıfına da constructor injection yapmamız lazım.
+
