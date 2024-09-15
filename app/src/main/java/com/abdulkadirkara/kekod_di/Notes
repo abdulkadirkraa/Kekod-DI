@@ -299,3 +299,87 @@ gibi sorular daha anlamlı. Sen bu soruları bilirsen gerisi implemantasyon deta
 field inject olan adapter'ın sınıfında constructor inject'in içine bir de LogAdapter oluşturup ınu eklersek tek hata verir hilt yine.
 Çünkü bu log nesnesini nasıl üretileceğini söylemediğimiz için. Dolayısıyla bu LogAdapter'ın sınıfına da constructor injection yapmamız lazım.
 
+--------------------------------------------------------------
+
+Ders12
+
+dependency inversion = high level modul ve class'ların low level class ve modul'lere depend olmasın bağımlı olmasın. İşin yapılış şekilnde üst leveller alt levele bu kadar
+bağımlı olurlarsa kendilerine kendi başlarına yapacakları işler için sürekli onların kopyasını bulundurmaları gerekir. Bu birliktelik bağımlılık durumuna tightly couple
+losely couple diyoruz. Tightly ya da losely olmasını ne sağlıyordu? Eğer bir sınıf kendi sınırları scope'u içerisinde diğer low level bir sınıfın instance'ını barındırıyorsa
+burda tightly couple durumu var diyoruz. Tightl couple dezavantajı olarak eğer o sınıfa bir test case yazmak isterseniz low level'in instance'ını mock'layamıyorsunuz.
+Mock'lamak dediğimiz şey de bu low level class instance'ını üretirken o sınıfa dair de testler yazmanız lazım. Yani sizin high level class'ınızı doğru şekilde test
+edebilmeniz için low level'İn de farklı varyasyonlarına ihtiyacınız olacak ama bu sınıfı high level class'ın içine aldığımızda mocklama şansımız olmuyor artık.
+Yani bu sınıfın içerdeki kullanımı neyse artık sadece onu test edebiliyorsunuz bu da test yapma yeteneklerinizi oldukça zayıflatıyor. Bu yüzden tightly couple test
+eteneklerinizi oldukça zayıflatıyor, ikincisi tghtly couple olan class'lar low leveldeki sınıfların farklı varyasyonları ihtiyaç olduğunda çok fazla yerin değiştirilmesine
+neden oluyor.
+Coupled olan sınıflarda bir de cohesion kavrmından bahsetmiştik. Sınıf ve moduller için cohesion: Eğer bir sınıf,fonksiyon,module sadece kendisinden sorumlu olan işi
+yapıyorsa burda cohesion yüksek diyorduk. Eğer tightly sınıflara baktığımızda birden fazla görevleri olmuş oluyor.
+
+Şimdi biz kotlinde hilt'te ve öğreneceğimiz daha ilerdeki bir çok projede annotation'lar üzerinden bir çalışma yappıcaz. DOlayısıyla bu tarz annotation'lar üzerinden giden
+çalışmalarda kapt'ı kullanmanız lazım. kapt hilt'e özel bir konu değil room db ile de çalışırken retrofitle çalışırken de kapt'a ihtiyaç duyacağız. kapt aslında android
+sisteminde kotlin sisteminde annotaiton ile çalışıyorsanız eğer annotaionlar ile çalıştığınız her yerde ihtiyaç duyduğunuz bir yapı. Bu yüzden hilt ile de çalışırken
+hilt'in kendi compiler'ını kapt'a vermeniz lazım dependencies kısmında module gradle'da.
+
+** kapt vs ksp
+
+Biz application sınıflarıyla beraber activity sınıflarından da önce belli şeyler generate edilsin ve kullanılsın istiyorsak bu custom application sınıfına ihtiyaç duyacağız.
+Birçok 3th parti sdk kendi initialize başlatma işlemini application'ın onCreate'inin içerisinde yapılmasını isteyecek sizden, offical dökümanasyonlarını okuduğunuzda orda
+yapılmasını isteyecekler. **Application sınıfı uygulamanın lifecycle'ı boyunca arka planda bulunduğu dönemi de katıyorum bunun içerisine süürekli olarak esin olarak memory'de
+yer kaplayan ve kesin olarak silinmeyen bir alan ifade etmiyor. Yani belli durumlarda işletim sistemi çok zorlandığında applicaiton sınıfını da sileiliyor. Application
+sınıfı singleton bir formda bulunmuyor. O yüzden applicationContext'e de süper güvenemezsiniz hiç bir zaman silinmeyecekmiş gibi güvenemezsiniz çok nadiren olsa da bunlar da
+silinebiliyor. Activity,fragment ya da herhangi bir x android sınıfına göre memory'den silinme ihtimali çok daha nadir ama gerçekleşebiliyor. **Sizin bu custom application
+sınıfı içerisine yazdığınız her bir entegrasyon sizin uygulamanızın kod launch'ını etkiliyor. Performans açısından uygulamanın ayağa kaldırılma süresi gibi 3 tane başlatma
+senaryosu var: cold launch,warm launch,hot launch. Bunlardan cold launch dediğimiz yöntemde ikona tıklandığında application sınıfından itibaren başlatılan yönteme deniyor.
+Ve bunun belli bir trash hold'u var o trash hold'un üzerinde bir başlatma süresi geçiyorsa bu süreyi azaltmak için ilk bakacağımız yerlerden biri application sınıfının
+oncreate'inde nelerin initialize edildiği. Yani öyle her sdk sizden application sınıfında initialize olmak istedi diye her sdk'yi de getirip oraya entegre etmeyin.
+Ne zaman application sınıfının oncreate'inde kullanmamız gerektiğine nasıl bakıcaz?
+Eğer ki o kullanacağınız sdk tüm activity'lerde,fragmentlerden view sınıflarından hepsinden önce gerçekten bir şeylerin kullanılmasını sağlatacaksa aplication sınıfında
+yaparız bunu. Ama sizin mesela sadece dashboard'dan,login register'dan sonra kullandığınız bir sdk var, onun mesela application sınıfında initialize olmasına gerek yok.
+Login register akışındaki herhangi bir yerde o sdk'i initialize edebilirsiniz.
+Meseka o splash'de bekliyoruz ya bunun sebebi her zaman ilgili uygulamanın kendi backend'i ile haberleştiği için değil arka plandaki kullanılan 3th parti sdk'lerin kendi
+backend'leriyle iletişiminden ya da arka planda telefonda yaptıkları ekstra işlemlerden kaynaklı da beklemeye neden olabiliyorsunuz.
+
+field injection kullandığımız yapıların private olmasına izin verilmiyor. Ve inject ettiğimiz sınıfın da constructor'ında inject annotation'ının bulunması lazım. constructor'ına
+inject yazdığımız o sınıfın mesela log sınıfının hilt ile injection'a açık olduğunu söylüyoruz. Yani bunu yaptığınızda hilt kendisinden istenicek bir sınıf olduğunu anlıyor.
+Dolayısıyla buile işlemi sırasında bunun nesnesinin üretileceğini anlamış oluyor.
+
+Neden field injection'da by lazy kullanamıyoruz?
+çünkü yine de ilk değeri yazmamız gerekiyor nesnein oluşturulmuş halini bu da var/var ile atmama yaparak oluşturmak da tightly coupled. Bu yüzden lateinit kullanıyoruz
+nesnesinin nerede üretildiğiyle ilgilenmeyen tek yöntem. inject annotation yazmadan kodda bir yerde kullandığımızda ise bizden initialized olmasını isteyecek. inject ile
+yazdığımızda ise hilt'e şunu demiş oluyoruz; class'ın kendi içerisine boş da olsa inject constructor koyarak bunu hilt'e bir yerden isteyeceğimizi demiş oluyoruz bunu üretmek
+zoorunda olduğunu hilt bilmiş oluyor. Sonuçta hilt her class'ın değil bizim belirttiğimiz class'ların nesnelerini üretecek. O yüzden constructor'ında injection olması
+bu sınıfının nesnesinin hilt tarafından üretileceğinni söylemiş oluyoruz. Sonrasında ne zaman ki lateinit var ile oluşturduğum bir sınıfın nesnesine inject annotation'ununu
+verirsem ondan sonra hit'e bu sınıfın nesnesin eihtiyaç duyacağımı söylemiştim sana önceden işte şimdi ihtiyaç duyuyorum bana o sınıfın nesnesini ver demiş oluyoruz. Ne zaman
+ki o lateinit'li nesneye aşağıda bir yerde erişmek istersek o aşamada hilt bize onun nesnesini veriyor. Ve biz o nesne üzeerinden ilgili nesnein class'ının fonksiyonlarını
+çağırabiliyoruz.
+
+Mesela bu field injection'ları bir fantezi olarak bir metoday koyup çağırmak istesek hilt bize hata verir,neden?
+Çünkü bir metodun içerisindeki değişkenler direk field oluyorlardı set'leri get'leri olmuyordu class member üye olduklarında property olup bunlara sahip oluyorlardı.
+
+Ben bir class'a değil de ya da class'a inject etmeye çalışıyorum class'ın kendisinde parametre olarak beklediğim yerde(yine o class'a inejct constructor yazdık ama bu sefer
+parametresi var interface olarak) parametre beklediğim yerde bir interface bekliyorsam. O halde hilt class olsa ona inject constructor yazar geçerdi ama interface olduğu için
+object'in expresiion kullanımında interface gerektiği yerde tek kullanımlık atılacak nesnesini oluşturup ilgili fonksionlara ilgili yapması gereken işlemleri yaptırdığımız
+gibi class oluşturup interface'i implemente edeceğiz (zaten abject'in expression kullanımının da arka planda yaptığı şey bu). Peki geri dönüş tipini interface olarak nasıl
+alabiliyoruz? Çünkü supertype dediğimiz şeyler bizim hem open ya da abstract class'lar olabilir hem de interface'ler olabilir. Sonuçta siz bir sınıfın implement ettiği
+şeyin hangi interface olduğunu söylerseniz o sınıfın nesnesini oluştururken interface olarak geri alabilirsiniz onu supertype'ı var çünkü. Yani bir sınıfın nesnesini
+oluşturdunuz tipini belirlerken 3tip yazabilirsiniz: sınıfın kendisini,sınıfın class olarak supertype'ını, sınıfın supertype olarak interface'ini yazabilirsiniz.
+Bu durumu da hilt'e söylemek için bu interface'i implemente eden bir sınıfı inject cnstructor yapabiliriz. DOlayısıyla bu sınıfın nesnesini oluşturabileceğimizi hilt'e
+söylemiş olduk. Hilt sadece bu impl sınıfında sen benden bu sınıfın nesnesini isteyeceksin normalde field injection gibi lateinit var imp: Imp'li bir şey yapsaydık yine
+ekstra bir şey istemeyecekti çünkü impl sınıfı da bir sınıf olduğu iiçin inject constructor'ı da kullandığımızdan bir problem olmazdı.Ama biz burda oluşturduğumuz nesneyi
+class tipiyle değil interface tipiyle istiyoruz. Bu duurmda hilt'e bu sınıfın nesnesini alıcaz ama sınıfın kendi tipi değil supertype'ı tipinde istiyoruz dememiz gerekiyor.
+Bunu söylediğimiz yer için de di package açıp hiltmodule oluşturup abstrack class ve bunun module olduğunu hilt'e anlatmak için module annotaiton'u ve bu module'u nerde
+kullanacaksak onun component'ini yazdığımız installIn anotation'u. Module'in içerisine abstrack class olduğu için abstract fun ekliyoruz parametreye imp'i sınıfı veriyoruz
+geri dönüş tipi olarak da interface'i alacağımızı söylüyoruz.
+
+Peki madem öyle neden interface beklediğimiz yerlere imp sınıfı yazmıyoruz?
+Bunun sebebi inversion of control'dür. Çünkü derdimiz şu benim class'ımda bunu kullandığım yerlerde ben her zaman (örnekteki adapter üzerinden her zaman interface'in
+fonksiyonunu kullanıyoruz, impl class fonksiyonunu kullanmıyoruz). Bunu yapma sebeplerimizin en büyüklerinden biri yaın bir gün şçyle bir problem olur: siz mesela kullandığınız
+analytics tool'u değiştirebilirsiniz, ilerde kesin değişir. Ama işin ana fonksiyonları bellidir siz sürekli service interface üzerinden fonksiyonu çağırıyorsunuz ama bu fonk
+arka planda hangi kütüphane ile çalışacak bunu bilmenize gerek yok. Biz bunu service interface üzerinden yöneterek ve bunun class impl'ınını oluşturarak yarın öbür gün
+interface'den override ettiğimiz ilgili fonksiyonun kullanımında Netmera().foo()'yu çağıracaktık mesela şirket başka bir analytic tool'u olan Dataroid'e geçersek
+Dataroid().foo() diyeceğiz sadece impl class'a ve işimiz hemen bitecektir. Ne foo() fonk'un çalıştırıldığı 200satırda değişiklik yaptık ne impl sınıfı içerisinde toplu bir
+değişiklik yaptık sadece netmera'daki foo()'nun çalıştırılmasıyla dataroid'de foo()'nun çalıştırılmasında kodları arasında nasıl farklar var diye buna baktık ve uyguladık.
+interface foo() fonksiyonumuzda ve ne de onu kullandığımız hiç bir herde değişiklik yapmadık sadece imp tarafında değişiklik yappıyoruz arka plandaki bütün işlem değişti
+ama activity sınıfınızın bundan haberi yok, activity sınıfı hala interface olan foo()'yu çağırığ işine devam ediyor.
+
+
