@@ -382,4 +382,84 @@ değişiklik yaptık sadece netmera'daki foo()'nun çalıştırılmasıyla datar
 interface foo() fonksiyonumuzda ve ne de onu kullandığımız hiç bir herde değişiklik yapmadık sadece imp tarafında değişiklik yappıyoruz arka plandaki bütün işlem değişti
 ama activity sınıfınızın bundan haberi yok, activity sınıfı hala interface olan foo()'yu çağırığ işine devam ediyor.
 
+Şimdi de biz bir sınıfı inject etmek istiyorsak ama sınıf bizde değilse bir kütüphanenin içinde yer alıyorsa ama biz onu da tightly couple olarak sınııfn içerisinde bulundurma-
+mamız lazım. Bizim onu da inject edebiliyor olmamız lazım. Bu gibi bizim sahip olmadığımız başka bir kütüphanenin sınıfı olan dolayısıyla içerisine girip constructor'ını
+inject edemediğimiz bir sınıfı da inject edebilmemiz için bir yöntem var. Bunun için de provides dediğimiz bir annotation'unumuz olacak.
+Şimdi problemimiz şu; bizim bu retrofit nesnesine ihtiyacımız var, projesinin içerisinde kullanıcaz ama onun class'ının herhangi bir yerine erişemiyorum bile file is read-only
+Bu retrofit module oluştururken abastract class kullanmayıp object kullanacağız. Biz burdaki fonksiyonumuzda retrofit'in nasıl üretileceğini söyledik
+çünkü başka yolumuz yok. Normalde analytics module'ündeki fonksiyonumuz arka planda çok temel olarak return analyticsServiceImpl yazıcak fonk body'sine bu sayede impl nesnesini
+service interface'i geri vericek şekilde alabilecektik. O yüzden bu detayları arka planda hilt ayarlayabileceği için bastract fun ve class yapmamız yeterliydi. Şimdi retrofitte
+olan probleme baktığımızda retrofit'in nasıl nesnesinin üretileceğiyle ilgili kısmı bir function olarak yazıyoruz ve geri dönüş tipinde de retrofit'i beklediğimizi
+söylüyoruz bu kadar. Provides annotation'u ile hilt bizim o fonksiyonda geri dönüp return edeceğimiz şeyi istediğimizi anlasın diye yazarız. Dolayısıyla herhangi bir yerde
+Inject
+lateinit var retrofit: Retrofit
+yazabiliriz.
+
+Şimdi peki neden interface'i module'de yazarken abstract kullanırken retrofit'te object kullanıyoruz?
+Çünkü interface'in module'u abstract class func olmadığı durumda implementation detayını da bizim vermemiz lazım ama hilt bunu yapması gereken yapı burda. O yüzden imp detayı
+olmayacağı için o fonksiyonun abstract function olması lazım fonksiyonun abstract olabilmesi için de abstract bir class'da yer alması lazım. Ama networkmodule'deki yapıya
+baktığımızda nesnenin nasıl oluşturulacağını bizim söylememiz lazım. Bu yüzden de burda implementation detayını vermemiz lazım o yüzden de fonksiyonu abstract yapamayız
+fonk'u abstract yapamadığımız düz yazabildiğimiz için de düz class olarak NetworkModule yazamayız. Çünkü düz class olarak yazsak bu sefer hilt'e module'un nesnesinin nasıl
+oluşturulacağını söylememiz gerekir. Bu yüzden object olarak NetworkModule'u tutuyoruz ki ilgili fonksiyona hilt arka planda NetworkModule.provideApiService() diyerek
+erişebilsin.
+Provides'ın anlamı bu fonksiyonda retrofit nesnesinin dönülmesini sağlatıyor.
+
+** hilt ile ilgili gelebilecek en temel mülakat sorularından biri: Provides ve Binds farkı nedir?
+Provides constructor'ı olabilen ama erişemediğimiz kütüphane class'ları için, değiştiremediğimiz kütüphane class'ları için kullanıyoruz. Ve biz zaten yazdığımız fonksiyonda da
+o nesnenin nasıl üretildiğini söylüyoruz. Ama Binds'da constructor'ı injection yapamadığımız bir interface'in implementation'ınını parametre olarak veriyoruz, geri dönüş
+tipi olarak da o interface'i beklediğimiz durumlarda impl detaylarını yazmıyoruz bu gibi durumlarda bind'i kullanıyoruz.
+
+** Neden NetworkModule'u abstract class olarak yazmıyoruz içerdeki normal fun olsa bile?
+
+Bazen şöyle dertleriniz olabilecek: Retrofit'i kullanırken biz özellikle bazı durumla bu retrofit instance'ının farklı bir versiyonunu isteyebiliyoruz. Biz yine retrofit
+instance'ını istiyoruz ama bu retrofit instance'ını isterken, retrofitlerle kullandığımız interceptor'lar var, burdaki retrofit instance'ı aynı olucak ama içerde üretim
+şekli farklı olabilir. Böyle durumlar için de qualifier dediğimiz yapılar var.
+Retention annotation içerisinde bu kullanıcağımızannotation'ıun hangi levelde iş yapacağını söylediğimiz bir bilgi.
+Şimdi biz qualifier dosyasında aslında kendimiz bir annotation oluşturuyoruz. Mesela kullanıcı uygulamaya girerken belli parametreler token'lar gerekecek onun için
+bir de normal kullanım için tokensiz hali olucak. Bu durumda NetworkModule'de iki tane fonksiyonumuz olucak bu api ile ilgili, ikisi da aynı retrofit nesnesini üretecek
+ama bir yerde bu instance'ı isterken hangisini verceğini hilt'in söylememiz lazım. Qualifier'lar ile module seviyesinde ayarlamıştık bunu dolayısıyla çağırdığımız yerde de
+atıyorum AuthInterceptorRetrofit'i veya diğerini istiyorum diyebilmemiz lazım. O yüzdn field injection ile çağırdığımız yerde şunu inject edeceksin diyoruz.
+@AuthInterceptorRetrofit
+@Inject
+lateinit var retrofit: Retrofit
+Dolayısıyla hilt module'de birden fazla varyasyonu olan retrofit nesnelerinden bu qualifier'a sahip olanı istiyor diyoruz.
+
+Predefined Qualifiers : ActivityContext ile ApplicaionContext. Mesela adapter constructor'ında bir context bekliyoruz. Bunlar için hilt'in içerisinde ön tanımlı olarak bulunan
+yazılan 2 qualifier'ımız var.
+
+Bilmemiz gerekenler:
+1- Biz neden bir dependendy injection tool'u kullanıyoruz? Bunun arkasında yatan sebepler ne?
+2- Dependency inversion presibi
+3- Inversion of control prensibi
+4- tightly couple, losely couple, cohesion kavramları
+5- hilt,koin ya da x bir şey kullanmadan biz manuel olarak dependency injection nasıl yapabiliriz?
+
+Bunları bitirdikten sonra hilt özelinde bilinmesi gerekenler:
+1- hilt arka planda nasıl çalışıyor? Bu verdiğimiz annotation'lar arka planda napıyor?
+2- hilt'in avantajı ne? -> run time safety (hilt kaynaklı bir hatayla karşılaşma ihtimalimiz çok düşük)
+3- constructor injection, field injection nedir? Bir sınıfı constructor'dan inject etmem için neye ihtiyacım var?
+4- Bir interface'i nasıl inject edebiliriz?
+5- Elimizde bir sınıf var constructor'ına inject yapılabilir ama sınıfa erişemiyorsak, bu bir kütüphane sınıfysa nasıl yaparız?
+6- Bu üretimini bizim yaptığımız kütüphane sınıfı nesnelerini bazen parametrelerde veya sınıfın üretim şeklinde değişimler olabilir. Aynı değeri beklediğimiz böyle
+   değişimlerde nasıl bir yöntem yaparız? -> İkinci fonk yazar hilt'e hangisini istediğimiiz söylemek için qualifier yazıyoruz.
+7- Qualifier'lar nasıl kullanılıyor, ne işe yarıyorlar?
+8- provide ve bind ne işe yarıyorlar ve farkları?
+
+ViewWithFragmentComponent'i FragmentComponent ve ViewComponent'ten ayıran yapı; bir view'ı kullanıyorsunuz ama o view bir fragment'ın içerisinde kullanıldığına eminseniz kullanırsınız.
+
+Component lifetime önemli!
+
+Hilt'in temelde 2 görevi var:
+1- Size nesneyi vermek
+2- Nesnenin lifecycle yönetimini yapmak. Ne kadar süreli olarak kullanacağımız.
+
+Normalde retrofit room gibi yapılar kullandığımızda genelde derdimiz o instance'ı bir kez yaratalım, o instance üzerinden gidelim.
+Ne zaman bu singleton'ları kullanıcaz? Eğer ki nesneyi oluşturma işlemi maliyetli bir işlemse singleton, nerdeyse her class'ımda kullanacaksam ben bunu singleton yapmam lazım
+çünkü retrofit gibi objeler her ekranda istek atıldığı için singleton ama küçük objeleri singleton yapmamanız lazım. Bu yüzden hilt'te singleton annotation kullanırkne
+dikkatli olun.
+
+Eğer siz bir adaptar'e @ActivityScoped annotation verirsek bu durumda hilt'in üreteceği instance her çağrıldığı durmda aynı instance'ı döndürür activity'ler için.
+Bunu fragment'tan çağırdığımız durumda farklı nesneler oluşturur.
+
+
 
