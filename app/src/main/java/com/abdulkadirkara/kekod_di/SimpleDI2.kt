@@ -1,31 +1,31 @@
 package com.abdulkadirkara.kekod_di
 
-interface Engine {
+interface Engine2 {
     fun start()
 }
 
-class GasEnginee(): Engine{
+class GasEnginee2(): Engine2{
     override fun start() {
         println("gas engine")
     }
 }
 
-class ElectricEnginee() : Engine{
+class ElectricEnginee2() : Engine2{
     override fun start() {
         println("electric engine")
     }
 }
 
-class HybridEngine() : Engine {
+class HybridEngine2() : Engine2 {
     override fun start() {
         println("hybrid engine")
     }
 }
 
 class Car2(private val engineType: EngineTpe){
-    private val gasEngine = GasEnginee()
-    private val electricEngine = ElectricEnginee()
-    private val hybridEngine = HybridEngine()
+    private val gasEngine = GasEnginee2()
+    private val electricEngine = ElectricEnginee2()
+    private val hybridEngine = HybridEngine2()
 
     fun start(){
         when(engineType){
@@ -52,14 +52,15 @@ fun main(){
 }
 
 /*
-Burdaki problemde de biz tüm bu gas,electric,hybrid engine sınıflarına bağımlı haldeyiz. Yarın bir gün yeni bir engine type daha geldiğinde
-nesneini oluşturmak,start fonksiyona koymak,enum class'a type'a ekliyoruz, kullanırken implemantasyonunu yapıyoruz.
-Dependency inversion losely cohesion için gas,electric,hybrid engine'e biz sıkı sıkıya bağımlıyız tightly. Birinci prensip bize bu bağımlılıkları
-burdan uzaklaştır diyor. Çünkü bunlara tightly bağımlı olduğumuz sürece start'ın yapacağı şey engine'ı start etmekken oluşturduğumuz nesnelerin
-bağımlılıkları yüzünden type'a göre bir business logic yazmasına sebep olduk. DOlayısıyla burdaki cohesion'u yavaş yavaş düşürüyorsun.
-Çünkü ysrın bir gün bu bağımlı olunan sınıfları bir şeyleri değişebilir ve ekstra helper fonksiyonlar yazarak şişrmene class'ı neden olabilir.
-Car sınıfının bunlardan haberdar olmasına ihtiyacımız yok. Biz istiyoruz ki car sınıfı bir arabanın üretilip başlatıldığı yer olsun. Ama ilgili
-motorların nasıl üretildiğiyle ilgili bir bilgiye sahip olmasına gerek bile yok,olmamalı. Zaten bu kısım da dependency inversion dediğimiz şey.
+Burdaki problemde de biz tüm bu gas,electric,hybrid engine sınıflarına bağımlı haldeyiz. Yarın bir gün yeni bir engine type daha
+geldiğinde nesneini oluşturmak,start fonksiyona koymak,enum class'a type'a ekliyoruz, kullanırken implemantasyonunu yapıyoruz.
+Dependency inversion losely cohesion için gas,electric,hybrid engine'e biz sıkı sıkıya bağımlıyız tightly couple.
+Birinci prensip bize bu bağımlılıkları burdan uzaklaştır diyor. Çünkü bunlara tightly bağımlı olduğumuz sürece start'ın yapacağı şey
+engine'ı start etmekken oluşturduğumuz nesnelerin bağımlılıkları yüzünden type'a göre bir business logic yazmasına sebep olduk.
+Dolayısıyla burdaki cohesion'u yavaş yavaş düşürüyorsun. Çünkü yarın bir gün bu bağımlı olunan sınıfları bir şeyleri değişebilir ve
+ekstra helper fonksiyonlar yazarak şişirmene class'ı neden olabilir. Car sınıfının bunlardan haberdar olmasına ihtiyacımız yok.
+Biz istiyoruz ki car sınıfı bir arabanın üretilip başlatıldığı yer olsun. Ama ilgili motorların nasıl üretildiğiyle ilgili bir bilgiye
+sahip olmasına gerek bile yok,olmamalı. Zaten bu kısım da dependency inversion dediğimiz şey.
 
 Inversion of controlde de diyorduk ki; bu sınıfların üretilmesi veya fonksiyonlarını harici arayüz üzerinden yönetmek diyoruz.
 

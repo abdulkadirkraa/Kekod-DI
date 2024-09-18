@@ -4,13 +4,13 @@ interface Engine3 {
     fun start()
 }
 
-class GasEnginee3(): Engine3{
+class GasEngine3(): Engine3{
     override fun start() {
         println("gas engine")
     }
 }
 
-class ElectricEnginee3() : Engine3{
+class ElectricEngine3() : Engine3{
     override fun start() {
         println("electric engine")
     }
@@ -30,7 +30,7 @@ class Car3(private val engine: Engine3){//constructor injection
 }
 
 fun main(){
-    val gasengine3 = GasEnginee3()
+    val gasengine3 = GasEngine3()
     val car1= Car3(gasengine3)
     car1.start()
 
@@ -38,18 +38,19 @@ fun main(){
     val car2= Car3(hybridEngine3)
     car2.start()
 
-    val electricEnginee3 = ElectricEnginee3()
-    val car3= Car3(electricEnginee3)
+    val electricEngine3 = ElectricEngine3()
+    val car3= Car3(electricEngine3)
     car3.start()
 
     val plane3 = Plane3()
-    plane3.setEngine(electricEnginee3)
+    plane3.setEngine(electricEngine3)
     plane3.start()
 }
 
 class Plane3(){
     private lateinit var engine: Engine3//field injection
-    //burdaki engine private olarak çalıştırırsak sorun olmaz ama private kaldırırsak ide hata göstermiyor fakat çalıştırınca hata veriyor neden?
+    //burdaki engine private olarak çalıştırırsak sorun olmaz ama private kaldırırsak ide hata göstermiyor fakat çalıştırınca hata
+    // veriyor neden?
     //private değişkenin arka planda set/get metotları yazılmıyordu. ama biz bunu private yapmazsak arka planda get ve set'i olucak e biz
     //class'ın içinde de set metodunu yazdığımızdan bu ikisi birbiriyle çakışıyor diye hata verir. samejvmsignature hatası verir.
     //metot adımızı burda değişsek mesela setEngine2 yazsak çalışırdı ama çirkin bir kod.
